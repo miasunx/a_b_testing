@@ -1,0 +1,25 @@
+//set up different chat and order button for android and ios devices/systems
+//using web_traffic database to identify devices
+//measure and evaludate cvr and ctr, to test realibity and impact
+
+select event_date as dt, os_name,
+sum(page_0_landings) page_0_landings,
+sum(CTA_click) CTA_click
+sum(orders) Orders
+from
+(select a.event_date, a.visitor_id,
+case when a.os_name like 'Mobile iOS%'
+or a.os_name like 'macOS%'
+or a.os_name like 'iOS%'
+or a.os_name like'%ipadOS'
+or a.os_name like'ipadOS%'
+or a.os_name like'OS X%' then 'ios'
+when a.os_name like 'Android%' or a.os_name like 'Mobile Android%' then 'android' end as os_name,
+max(case when lower(page_name_v2) like '%configurator>product>home%%' and site_txmy = 'product_name' then 1 else 0 end) as page_0_landings,
+max(case when lower(link_cat) like '%chat_events%%' and site_txmy = 'product_name' then 1 else 0 end) as CTA_click
+max(case when lower(page_name_v2) like '%new exom step3|Thankyou%' and site_txmy = 'product_name' and order_id is not null then 1 else 0 end) as orders
+from web_traffic_source a
+where event_date >= '2022-12-12'
+group by 1,2,3) web
+group by 1,2
+order by 1 asc;
